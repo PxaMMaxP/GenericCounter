@@ -10,7 +10,7 @@
 
 - Name: Generic Counter <br>
 - Version: 0.0.2 <br>
-- Author: **Maximilian Passarello ([Blog](mpassarello.de))** <br>
+- Author: **Maximilian Passarello ([Blog](https://mpassarello.de))** <br>
 - License: [MIT](LICENSE) <br>
 
 Generic Counter with the following features:
