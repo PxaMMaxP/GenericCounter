@@ -1,0 +1,68 @@
+{
+    "signal": [
+        [
+            "General",
+            {
+                "name": "CLK",
+                "wave": "P.....|........",
+                "node": "0123456789abcde",
+                "period": 1
+            },
+            {
+                "name": "RST",
+                "wave": "10....|.....10."
+            },
+            {
+                "name": "CE",
+                "wave": "0.1...|........"
+            }
+        ],
+        [
+            "Set",
+            {
+                "name": "Set",
+                "wave": "0.....|..10...."
+            },
+            {
+                "name": "SetValue",
+                "wave": "x.....|..8x....",
+                "data": [
+                    "5"
+                ]
+            }
+        ],
+        [
+            "Counter",
+            {
+                "name": "CountEnable",
+                "wave": "0..1..|.......0"
+            },
+            {
+                "name": "CounterValue",
+                "wave": "4..777|77777777",
+                "data": "0 1 2 3 15 0 5 6 7 8 1 1"
+            },
+            {
+                "name": "LookAheadValue",
+                "wave": "4..777|77777777",
+                "data": "1 2 3 4 0 1 6 7 8 9 2 2"
+            }
+        ],
+        [
+            "Flags",
+            {
+                "name": "OverUnderflow",
+                "wave": "0.....|.10....."
+            }
+        ]
+    ],
+    "config": {
+        "hscale": 1
+    },
+    "head": {
+        "text": "<b>Generic Counter</b>"
+    },
+    "foot": {
+        "text": "RST Value = 0"
+    }
+}
