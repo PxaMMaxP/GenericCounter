@@ -9,7 +9,7 @@
 --@             - Look ahead value (configurable per generic)
 --@             - Synchronous reset
 --@             - Clock enable
---@             - Set with priority over the `CountEnable`
+--@             - `Set` with priority over the `CountEnable`
 --@             - Over- and Underflow flag
 --@             - Configurable width
 --@             - Configurable initial value
