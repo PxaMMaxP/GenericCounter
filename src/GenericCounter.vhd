@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------------
 --@ - Name:     Generic Counter <br>
---@ - Version:  0.0.2 <br>
+--@ - Version:  0.0.3 <br>
 --@ - Author:   __Maximilian Passarello ([Blog](mpassarello.de))__ <br>
 --@ - License:  [MIT](LICENSE) <br>
 --@             
@@ -18,6 +18,8 @@
 --@ ## History
 --@ - 0.0.1 (2024-03-15) Initial version
 --@ - 0.0.2 (2024-03-16) Added Testbench. Simulation passed.
+--@ - 0.0.3 (2024-03-19) Add `LookAheadOverUnderflow` output,
+--@                      added parallel adders for the counter and lookahead.
 ----------------------------------------------------------------------------------
 --@ ## Waveform
 --@ {
@@ -104,7 +106,7 @@ entity GenericCounter is
         --@ Counting direction: "UP" or "DOWN"
         CountingDirection : string := "UP";
         --@ Look ahead value
-        LookAhead : integer := 0
+        LookAhead : integer := 2
     );
     port (
         --@ Clock input; rising edge
@@ -117,32 +119,44 @@ entity GenericCounter is
         CountEnable : in std_logic;
         --@ Counter Value
         CounterValue : out std_logic_vector(Width - 1 downto 0);
+        --@ Counter over- and underflow flag
+        CounterOverUnderflow : out std_logic;
         --@ Look ahead value
         LookAheadValue : out std_logic_vector(Width - 1 downto 0);
+        --@ Counter over- and underflow flag
+        LookAheadOverUnderflow : out std_logic;
         --@ Set with priority over the `CountEnable`
         Set : in std_logic;
         --@ If set is high, the counter will be set to SetValue
-        SetValue : in std_logic_vector(Width - 1 downto 0);
-        --@ Over- and Underflow flag
-        OverUnderflow : out std_logic
+        SetValue : in std_logic_vector(Width - 1 downto 0)
     );
 end entity GenericCounter;
 
 architecture RTL of GenericCounter is
+    function Str_Equal(str1 : string; str2 : string) return boolean is
+    begin
+        if str1'length /= str2'length then
+            return FALSE;
+        else
+            return (str1 = str2);
+        end if;
+    end function;
+
     function CountingStep(BinaryValue : unsigned; Step : integer := 1)
         return unsigned is
     begin
-        if CountingDirection = "UP" then
+        if Str_Equal(CountingDirection, "UP") then
             return BinaryValue + Step;
         else
             return BinaryValue - Step;
         end if;
     end function CountingStep;
 
-    signal R_Counter       : unsigned(Width - 1 downto 0) := to_unsigned(InitialValue, Width);
-    signal C_NextCounter   : unsigned(Width - 1 downto 0) := to_unsigned(InitialValue, Width);
-    signal C_LookAhead     : unsigned(Width - 1 downto 0) := to_unsigned(InitialValue + LookAhead, Width);
-    signal C_OverUnderflow : std_logic;
+    signal R_Counter                : unsigned(Width - 1 downto 0) := to_unsigned(InitialValue, Width);
+    signal C_NextCounter            : unsigned(Width - 1 downto 0) := to_unsigned(InitialValue, Width);
+    signal C_LookAhead              : unsigned(Width - 1 downto 0) := to_unsigned(InitialValue + LookAhead, Width);
+    signal C_OverUnderflow          : std_logic;
+    signal C_LookAheadOverUnderflow : std_logic;
 begin
 
     process (CLK)
@@ -151,33 +165,43 @@ begin
             if RST = '1' then
                 R_Counter <= to_unsigned(ResetValue, Width);
             elsif CE = '1' then
-                R_Counter <= C_NextCounter;
+                if Set = '1' then
+                    R_Counter <= unsigned(SetValue);
+                else
+                    R_Counter <= C_NextCounter;
+                end if;
             end if;
         end if;
     end process;
 
-    Counting : process (R_Counter, CountEnable, Set, SetValue)
-        variable V_OverUnderflow : unsigned(Width downto 0);
+    Counting : process (R_Counter, CountEnable)
+        variable V_CounterOverUnderflow   : unsigned(Width downto 0);
+        variable V_LookAhead              : unsigned(Width downto 0);
+        variable V_LookAheadOverUnderflow : unsigned(Width downto 0);
     begin
-        V_OverUnderflow := CountingStep("0" & R_Counter);
+        if CountEnable = '1' then
+            V_CounterOverUnderflow   := CountingStep("0" & R_Counter);
+            V_LookAheadOverUnderflow := CountingStep("0" & R_Counter, 1 + LookAhead);
 
-        if Set = '1' then
-            C_NextCounter   <= unsigned(SetValue);
-            C_LookAhead     <= CountingStep(unsigned(SetValue), LookAhead);
-            C_OverUnderflow <= '0';
-        elsif CountEnable = '1' then
-            C_NextCounter   <= V_OverUnderflow(Width - 1 downto 0);
-            C_LookAhead     <= CountingStep(R_Counter, 1 + LookAhead);
-            C_OverUnderflow <= V_OverUnderflow(Width);
+            C_NextCounter   <= V_CounterOverUnderflow(Width - 1 downto 0);
+            C_OverUnderflow <= V_CounterOverUnderflow(Width);
+
+            C_LookAhead              <= V_LookAheadOverUnderflow(Width - 1 downto 0);
+            C_LookAheadOverUnderflow <= V_LookAheadOverUnderflow(Width) and not(V_CounterOverUnderflow(Width));
         else
+            V_LookAhead := CountingStep("0" & R_Counter, LookAhead);
+
             C_NextCounter   <= R_Counter;
-            C_LookAhead     <= CountingStep(R_Counter, LookAhead);
             C_OverUnderflow <= '0';
+
+            C_LookAhead              <= V_LookAhead(Width - 1 downto 0);
+            C_LookAheadOverUnderflow <= '0';
         end if;
     end process;
 
-    LookAheadValue <= std_logic_vector(C_LookAhead);
-    CounterValue   <= std_logic_vector(C_NextCounter);
-    OverUnderflow  <= C_OverUnderflow;
+    CounterValue           <= std_logic_vector(C_NextCounter);
+    CounterOverUnderflow   <= C_OverUnderflow;
+    LookAheadValue         <= std_logic_vector(C_LookAhead);
+    LookAheadOverUnderflow <= C_LookAheadOverUnderflow;
 
 end architecture RTL;

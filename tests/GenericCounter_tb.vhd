@@ -16,15 +16,23 @@ architecture behavior of GenericCounter_tb is
             LookAhead         : integer := 0
         );
         port (
-            CLK            : in std_logic;
-            RST            : in std_logic;
-            CE             : in std_logic;
-            CountEnable    : in std_logic;
-            CounterValue   : out std_logic_vector(Width - 1 downto 0);
+            CLK : in std_logic;
+            RST : in std_logic;
+            CE  : in std_logic;
+            --@ Count enable; active high
+            CountEnable : in std_logic;
+            --@ Counter Value
+            CounterValue : out std_logic_vector(Width - 1 downto 0);
+            --@ Counter over- and underflow flag
+            CounterOverUnderflow : out std_logic;
+            --@ Look ahead value
             LookAheadValue : out std_logic_vector(Width - 1 downto 0);
-            Set            : in std_logic;
-            SetValue       : in std_logic_vector(Width - 1 downto 0);
-            OverUnderflow  : out std_logic
+            --@ Counter over- and underflow flag
+            LookAheadOverUnderflow : out std_logic;
+            --@ Set with priority over the `CountEnable`
+            Set : in std_logic;
+            --@ If set is high, the counter will be set to SetValue
+            SetValue : in std_logic_vector(Width - 1 downto 0)
         );
     end component;
 
@@ -37,9 +45,10 @@ architecture behavior of GenericCounter_tb is
     signal SetValue    : std_logic_vector(3 downto 0) := (others => '0');
 
     --Outputs
-    signal CounterValue   : std_logic_vector(3 downto 0);
-    signal LookAheadValue : std_logic_vector(3 downto 0);
-    signal OverUnderflow  : std_logic;
+    signal CounterValue           : std_logic_vector(3 downto 0);
+    signal CounterOverUnderflow   : std_logic;
+    signal LookAheadValue         : std_logic_vector(3 downto 0);
+    signal LookAheadOverUnderflow : std_logic;
 
     -- Clock period definitions
     constant CLK_period : time := 10 ns;
@@ -51,19 +60,20 @@ begin
             Width             => 4,
             InitialValue      => 0,
             ResetValue        => 0,
-            CountingDirection => "UP",
+            CountingDirection => "DOWN",
             LookAhead         => 1
         )
         port map(
-            CLK            => CLK,
-            RST            => RST,
-            CE             => CE,
-            CountEnable    => CountEnable,
-            CounterValue   => CounterValue,
-            LookAheadValue => LookAheadValue,
-            Set            => Set,
-            SetValue       => SetValue,
-            OverUnderflow  => OverUnderflow
+            CLK                    => CLK,
+            RST                    => RST,
+            CE                     => CE,
+            CountEnable            => CountEnable,
+            CounterValue           => CounterValue,
+            LookAheadValue         => LookAheadValue,
+            Set                    => Set,
+            SetValue               => SetValue,
+            CounterOverUnderflow   => CounterOverUnderflow,
+            LookAheadOverUnderflow => LookAheadOverUnderflow
         );
 
         -- Clock process definitions
