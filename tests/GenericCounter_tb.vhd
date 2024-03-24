@@ -9,11 +9,11 @@ architecture behavior of GenericCounter_tb is
     -- Component Declaration for the Unit Under Test (UUT)
     component GenericCounter
         generic (
-            Width             : integer := 4;
+            Width             : integer := 6;
             InitialValue      : integer := 0;
             ResetValue        : integer := 0;
-            CountingDirection : string  := "UP";
-            LookAhead         : integer := 0
+            CountingDirection : string  := "DOWN";
+            LookAhead         : integer := 1
         );
         port (
             CLK : in std_logic;
@@ -42,12 +42,12 @@ architecture behavior of GenericCounter_tb is
     signal CE          : std_logic                    := '0';
     signal CountEnable : std_logic                    := '0';
     signal Set         : std_logic                    := '0';
-    signal SetValue    : std_logic_vector(3 downto 0) := (others => '0');
+    signal SetValue    : std_logic_vector(5 downto 0) := (others => '0');
 
     --Outputs
-    signal CounterValue           : std_logic_vector(3 downto 0);
+    signal CounterValue           : std_logic_vector(5 downto 0);
     signal CounterOverUnderflow   : std_logic;
-    signal LookAheadValue         : std_logic_vector(3 downto 0);
+    signal LookAheadValue         : std_logic_vector(5 downto 0);
     signal LookAheadOverUnderflow : std_logic;
 
     -- Clock period definitions
@@ -57,7 +57,7 @@ begin
     -- Instantiate the Unit Under Test (UUT)
     uut : component GenericCounter
         generic map(
-            Width             => 4,
+            Width             => 6,
             InitialValue      => 0,
             ResetValue        => 0,
             CountingDirection => "DOWN",
@@ -104,7 +104,7 @@ begin
 
             -- Set operation
             Set      <= '1';
-            SetValue <= "1010";
+            SetValue <= "101010";
             wait for CLK_period * 1;
             Set <= '0';
 

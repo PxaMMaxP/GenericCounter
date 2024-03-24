@@ -6,13 +6,13 @@ use ieee.math_real.all;
 entity GenericCounter_pb is
     generic (
         --@ Width of the counter
-        Width : integer := 4;
+        Width : integer := 6;
         --@ Initial value of the counter
         InitialValue : integer := 0;
         --@ Reset value of the counter
         ResetValue : integer := 0;
         --@ Counting direction: "UP" or "DOWN"
-        CountingDirection : string := "UP";
+        CountingDirection : string := "DOWN";
         --@ Look ahead value
         LookAhead : integer := 2
     );
